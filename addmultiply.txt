@@ -1,0 +1,396 @@
+//Shanique Richards 
+/**Challenge: Create an algorithm that uses a singly linkedlist to:
+*add two floating point numbers OR multiply 2 floating point numbers. 
+*Cannot use Math library
+*Caveat: Older C compiler available for use for problem, therefore, 
+* alogirthm restricted to older C++ syntax.
+*
+*@struct snode: Node used to create stacks
+***@int data: node's member used to store a single integer character
+***@snode prev: pointer to the next node in the stack.
+*@struct qnode: Node used to create queues
+***@int data: node's member used to store a single integer character
+***@qnode next: pointer to the next node in the stack.
+*@struct dnode: Builds a data list using a queues or stacks represeting a number
+***@isFloat: Is the number a floating point? 
+***@int decimalPos: The position of decimal point. 
+***@snode *head: Pointer to the head of the stack
+***@snode *head_q:Pointer to the head the queue.
+**/
+
+
+/* Big O Analysis
+*If an addition is called the algortihm runs in O(N). If a multiplication is
+*called algorithm runs in O(N^2).
+*
+*/
+
+#include <iostream>
+#include <fstream>
+#include <cstdlib>
+
+using namespace std;
+
+struct qnode { 
+  int data;
+  qnode * next;
+};
+
+struct snode { 
+  int data;
+  snode * prev;
+};
+
+
+struct dnode{
+  bool isFloat;
+  int decimalpos;
+  snode * head; 
+  qnode * head_q;
+};
+
+
+//Check if the file we're trying to read from exists.
+
+bool fileExists(char * name) {
+  ifstream file (name);
+
+  if(!file.is_open()) {
+    cout << "Oops. That file called " << name <<  " doesn't seem to exist. Try \
+    again."<<endl;
+    return false;
+  }
+  file.close();
+  return true;
+
+}
+
+//Read the numbers from the file.
+
+dnode * getNums (char * name) {
+
+  ifstream file(name);
+  char tempdata = '0';
+  int dec_counter = -1;
+  snode * sn = NULL;
+  dnode * top = NULL;
+
+  while (file) {
+    file >>tempdata;
+
+    if (file.eof())
+    break;
+
+    if (tempdata == '.') {
+      dec_counter++;
+      continue;
+    }
+
+    if (dec_counter > -1)
+    dec_counter++;
+
+    snode * temp = new snode;
+    temp -> data  = tempdata - '0';
+    temp -> prev = sn;
+    sn = temp;
+  }
+
+  if (sn) {
+    top = new dnode;
+
+    if (dec_counter > -1) {
+    top -> isFloat = true;
+    top -> decimalpos = dec_counter;
+  }else {
+    top -> isFloat = false;
+    top -> decimalpos = 0;
+  }
+    top -> head = sn;
+  }
+
+  return top;
+}
+
+//Return the position of the decimal point if number is a float.
+
+int getDecimalPos(dnode * head) {
+  return head -> decimalpos;
+}
+
+
+//Return true or false if data list contains a floating point number.
+
+bool read(dnode * head) { 
+  return head -> isFloat;
+}
+
+//Print the resulting linked list to a file. 
+
+void printList(dnode * res) {
+
+  qnode * result = res -> head_q;
+  int dec_counter = 0;
+  int decimal_pos = getDecimalPos(res);
+
+  while(result) {
+    cout <<result -> data << endl;
+    dec_counter++;
+    if (dec_counter == decimal_pos)
+    cout << '.' << endl;
+
+    result = result -> next;
+  }
+}
+
+//////////////////////////////////Algorithm for Multiplication//////////////////////////////
+
+//When printing out multiplication result, reverse the list and  
+//return the count of the number of integer characters present.
+
+int reverseAndCount(qnode * &a) {
+   qnode * headnew = NULL;
+   qnode * temp = NULL;
+   int numcount = 0;
+
+while (a) {
+   temp = a;
+   a = a -> next;
+   temp -> next  = headnew;
+   headnew = temp;
+   numcount++;
+ }
+
+ a = headnew;
+ return numcount;
+  
+}
+
+//Recursive call that manages addition in the multiplication.                
+
+void multiplyhelper(const int b, snode * a, qnode * &c, int carry_val) {
+
+  if (a == NULL && carry_val == 0)
+  return;
+
+  if (c == NULL) {
+    c = new qnode;
+    c -> data = 0;
+    c ->next = NULL;
+  }
+
+  if (a == NULL) {
+  c -> data = carry_val;
+  return;
+}
+  else {
+    int multiply_math = b * a -> data + carry_val + c -> data;
+    c -> data = multiply_math % 10;
+    carry_val = multiply_math / 10;
+    multiplyhelper(b, a->prev, c->next, carry_val);
+  }
+}
+
+//This function uses a while loop to make sure that we handle the '0'
+//displacement needed for each iteration of the multiplication.
+
+qnode * multiplystarter (dnode * da, dnode * db) {
+
+  if (da == NULL || db == NULL)
+  return NULL;
+
+  qnode * const product_head = new qnode;
+  product_head-> data = 0;
+  product_head-> next = NULL;
+  snode *snode_b = db -> head;
+  snode *snode_a = da -> head;
+  int level = 0; //keeps track of of the displacement needed for multiplication
+
+  while (snode_b) {
+    qnode * product = product_head;
+    int multiplier = snode_b -> data;
+
+    for (int i = 0; i < level; i++) { //find the right spot to start adding
+      product = product -> next;
+    }
+    multiplyhelper(multiplier, snode_a, product, 0);
+    snode_b = snode_b -> prev;
+    level++;
+  }
+
+  return product_head;
+}
+
+//called once - The facade for the multiply functionality, returns a datalist with the multiplication result
+
+dnode * multiply(dnode * a, dnode * b) {
+
+ qnode * head = NULL;
+ dnode * d_top = NULL;
+ int num = 0;
+ head = multiplystarter(a, b);
+
+ if (head) {
+   num = reverseAndCount(head);
+   d_top = new dnode;
+   d_top -> decimalpos = num - (a -> decimalpos + b -> decimalpos);
+   d_top -> isFloat = (d_top -> decimalpos > 0);
+   d_top -> head_q = head;
+  }
+
+  return d_top;
+}
+
+
+
+
+//////////////////////////////////Algorithm for Addition//////////////////////////////
+
+//Let's say we're adding 2.8976 and 2.1, then this function is responsible
+//for inserting '976' (the unmatched place positions) into the end of the list for the sum. 
+
+void copyToSum(snode*&t, qnode *&sum, int repeat) {
+
+  if (repeat == 0) return;
+
+  sum -> data = t -> data;
+
+  sum -> next = new qnode;
+  sum = sum -> next;
+  sum -> next = NULL;
+  t = t-> prev;
+
+  copyToSum(t, sum, --repeat);
+}
+
+//Let's say we're adding 12325 and 68, then this function is responsible for 
+//inserting 123 (left-over values) into the front of the list for the sum.
+
+void handleLeftOvers(snode * &t , qnode * &sum, int carry_val) {
+
+  if (t == NULL && carry_val == 0)
+  return;
+
+  if (sum == NULL) {
+    sum = new qnode;
+    sum -> next = NULL;
+  }
+
+  if (t == NULL && carry_val > 0) {
+    sum -> data = carry_val;
+    return;
+  }
+
+  int sum_value = t->data + carry_val;
+  sum -> data = sum_value % 10;
+  carry_val = sum_value / 10;
+
+  handleLeftOvers(t -> prev, sum -> next, carry_val);
+
+}
+
+//If we're adding 3876 and 123, this function is responsible for adding
+// '876' and '123', (numbers with matching place positions in with datalist)
+
+void addhandler(snode * a, snode * b, qnode * &sum, int carry_val) {
+
+  if ( a == NULL && b == NULL && carry_val == 0)
+  return;
+
+  if (sum == NULL){
+    sum = new qnode;
+    sum -> next = NULL;
+  }
+
+  if (a == NULL) {
+    handleLeftOvers(b, sum, carry_val);
+    return;
+  }
+
+  if (b== NULL) {
+    handleLeftOvers (a, sum, carry_val);
+    return;
+  }
+
+  int sum_value = a -> data + b ->data + carry_val;
+  sum -> data = sum_value % 10;
+  carry_val = sum_value / 10;
+
+  addhandler(a->prev, b -> prev, sum->next, carry_val);
+}
+
+
+
+//Manages the adding of numbers sitting behind the decimal point.
+
+qnode * addstarter(dnode * a, dnode * b) {
+  qnode * sum = new qnode;
+  sum -> next = NULL;
+  sum -> data = 0;
+
+  qnode * const summation_head = sum;
+  snode * sa = a -> head;
+  snode * sb = b -> head;
+
+
+  if (a ->isFloat || b->isFloat) {
+    int decimal_place_for_a = a -> decimalpos;
+    int decimal_place_for_b = b -> decimalpos;
+
+    if (decimal_place_for_a > decimal_place_for_b)
+    copyToSum(sa, sum, (decimal_place_for_a - decimal_place_for_b));
+    else if (decimal_place_for_b > decimal_place_for_a)
+    copyToSum(sb, sum, (decimal_place_for_b - decimal_place_for_a));
+  }
+
+  addhandler(sa,sb,sum, 0);
+  return summation_head;
+
+}
+
+//Facade for the addition functionality, returns datalist with the result of the addition.
+
+dnode * add(dnode * a, dnode * b ){
+  if (a == NULL || b == NULL)
+  return NULL;
+
+  qnode * result = addstarter(a, b);
+  int num = reverseAndCount(result);
+  int decimal_places = (a ->decimalpos > b->decimalpos)? a -> decimalpos : b -> decimalpos;
+
+  dnode * c = new dnode;
+  c -> isFloat = (decimal_places > 0);
+
+  if (c -> isFloat)
+  c -> decimalpos = num - decimal_places;
+  else
+  c -> decimalpos = 0;
+
+  c ->head_q = result;
+  return c;
+}
+
+///////////////////////////////Main/////////////////////////////
+int main (int argc, char * argv[]) {
+
+  if (fileExists(argv[2]) && fileExists(argv[3])){
+  char * file1 = argv[2];
+  char * file2 = argv[3];
+  dnode *const l1 = getNums(file1);
+  dnode *const l2 = getNums(file2);
+  char * command = argv[1];
+  dnode * res = NULL;
+
+  if (strcmp(command, "add") == 0){
+    res = add (l1, l2);
+    printList(res);
+  }else if (strcmp(command, "multiply") == 0){
+     res = multiply (l1, l2);
+     printList(res);
+  }else {
+    cout << "Command is not right - type 'add' or 'multiply'." <<endl;
+  }
+}
+return 0;
+
+
+}
