@@ -1,63 +1,54 @@
-//Shanique Richards 
-/**Challenge: Create an algorithm that uses a singly linkedlist to:
-*add two floating point numbers OR multiply 2 floating point numbers. 
-*Cannot use Math library
-*Caveat: Older C compiler available for use for problem, therefore, 
-* alogirthm restricted to older C++ syntax.
-*
-*@struct snode: Node used to create stacks
-***@int data: node's member used to store a single integer character
-***@snode prev: pointer to the next node in the stack.
-*@struct qnode: Node used to create queues
-***@int data: node's member used to store a single integer character
-***@qnode next: pointer to the next node in the stack.
-*@struct dnode: Builds a data list using a queues or stacks represeting a number
-***@isFloat: Is the number a floating point? 
-***@int decimalPos: The position of decimal point. 
-***@snode *head: Pointer to the head of the stack
-***@snode *head_q:Pointer to the head the queue.
-**/
+# SinglyLinkedList Calculator
+
+## Create an algorithm that reads floating point numbers from a txt file and then adds/multiplies these floats.
+## The Use of the C++ Math Library Is Not Allowed
+### Each number must be built using a linked list. For e.g. the number 489.59 would be represented by list of linked nodes like this: 4-> 8 -> 9 ->. ->5 -> 9
+
+### Big O Analysis
+If an addition is called, the algortihm runs in O(N). If a multiplication is called, algorithm runs in O(N^2).
 
 
-/* Big O Analysis
-*If an addition is called the algortihm runs in O(N). If a multiplication is
-*called algorithm runs in O(N^2).
-*
-*/
+
+### Namespaces Used
+
+```C++
 
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
-
 using namespace std;
 
-struct qnode { 
-  int data;
-  qnode * next;
+```
+### Our Structs 
+
+```C++
+
+struct qnode { // Node used to create a queue to represent a number. So the number 357 in the queue looks like  (3<- 5<- 7)
+  int data;  // node's member used to store a single integer character
+  qnode * next; //pointer to the next node in the queue.
 };
 
-struct snode { 
-  int data;
-  snode * prev;
-};
-
-
-struct dnode{
-  bool isFloat;
-  int decimalpos;
-  snode * head; 
-  qnode * head_q;
+struct snode {  // Node used to create a stack to represent a number. So the number 357 in the stack looks like  (7<- 5<- 3)
+  int data; // node's member used to store a single integer character
+  snode * prev; //pointer to the next node in the stack.
 };
 
 
-//Check if the file we're trying to read from exists.
+struct dnode{ // Holds a reference for either a queue or stack of numbers, and defines whether the number is floating point and position of decimal point.
+  bool isFloat; //Is the number a floating point? 
+  int decimalpos; //The position of decimal point. 
+  snode * head; // Pointer to the head of the stack
+  qnode * head_q; //Pointer to the head the queue.
+};
+```
+
+// Function to check if the file we're trying to read from exists.
 
 bool fileExists(char * name) {
   ifstream file (name);
 
   if(!file.is_open()) {
-    cout << "Oops. That file called " << name <<  " doesn't seem to exist. Try \
-    again."<<endl;
+    cout << "Oops. That file called " << name <<  " doesn't seem to exist. Try again."<<endl;
     return false;
   }
   file.close();
@@ -65,7 +56,7 @@ bool fileExists(char * name) {
 
 }
 
-//Read the numbers from the file.
+//Function to read the characters from the file.
 
 dnode * getNums (char * name) {
 
@@ -394,3 +385,4 @@ return 0;
 
 
 }
+```
