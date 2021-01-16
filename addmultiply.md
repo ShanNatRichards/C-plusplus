@@ -1,15 +1,15 @@
-# SinglyLinkedList Calculator
+# LinkedList Calculator
 
 ## Create an algorithm that reads floating point numbers from a txt file and then adds/multiplies these floats.
-## The Use of the C++ Math Library Is Not Allowed
-### Each number must be built using a linked list. For e.g. the number 489.59 would be represented by list of linked nodes like this: 4-> 8 -> 9 ->. ->5 -> 9
+### The Use of the C++ Math Library Is Not Allowed
+### Each number must be built using a singly linked list. For e.g. the number 489.59 would be represented by list of linked nodes like this: 4-> 8 -> 9 ->. ->5 -> 9
 
 ### Big O Analysis
 For additions, the algortihm runs in O(N). For multiplications, algorithm runs in O(N^2).
 
 
 
-### Namespaces Used
+### Namespaces
 
 ```C++
 
