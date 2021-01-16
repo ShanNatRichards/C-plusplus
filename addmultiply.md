@@ -128,7 +128,7 @@ bool read(dnode * head) {
 }
 ```
 
-### Function : Print a linkedlist
+### Function : Print Linkedlist
 
 ```C++
 
@@ -148,33 +148,70 @@ void printList(dnode * res) {
   }
 }
 ```
-//////////////////////////////////Algorithm for Multiplication//////////////////////////////
 
-//When printing out multiplication result, reverse the list and  
-//return the count of the number of integer characters present.
+## Functions for Multiplication:
 
-int reverseAndCount(qnode * &a) {
-   qnode * headnew = NULL;
-   qnode * temp = NULL;
-   int numcount = 0;
+### Function: Multiplies the values passed in via the dnode structs
+    ### returns a dnode strcut with the multiplication result
+``` C+++
+dnode * multiply(dnode * a, dnode * b) 
+{
+   qnode * head = NULL;
+   dnode * d_top = NULL;
+   int num = 0;
+   head = multiplystarter(a, b);
 
-while (a) {
-   temp = a;
-   a = a -> next;
-   temp -> next  = headnew;
-   headnew = temp;
-   numcount++;
- }
+   if (head) {
+     num = reverseAndCount(head);
+     d_top = new dnode;
+     d_top -> decimalpos = num - (a -> decimalpos + b -> decimalpos);
+     d_top -> isFloat = (d_top -> decimalpos > 0);
+     d_top -> head_q = head;
+  }
 
- a = headnew;
- return numcount;
-  
+  return d_top;
 }
 
-//Recursive call that manages addition in the multiplication.                
+```
+### Multiply Sub Functions:
 
-void multiplyhelper(const int b, snode * a, qnode * &c, int carry_val) {
+```C++
 
+qnode * multiplystarter (dnode * da, dnode * db) 
+{
+  //This function uses a while loop to make sure that we handle the '0' displacement needed for each iteration of the multiplication.
+  if (da == NULL || db == NULL)
+    return NULL;
+
+  qnode * const product_head = new qnode;
+  product_head-> data = 0;
+  product_head-> next = NULL;
+  snode *snode_b = db -> head;
+  snode *snode_a = da -> head;
+  int level = 0; //variable keeps track of of the displacement needed for multiplication
+
+  while (snode_b) {
+    qnode * product = product_head;
+    int multiplier = snode_b -> data;
+
+    for (int i = 0; i < level; i++) { //find the right spot to start adding
+      product = product -> next;
+    }
+    
+    multiplyhelper(multiplier, snode_a, product, 0);
+    snode_b = snode_b -> prev;
+    level++;
+  }
+
+  return product_head;
+}
+
+```
+
+```C++
+void multiplyhelper(const int b, snode * a, qnode * &c, int carry_val) 
+{
+  //Recursive function that manages addition in the multiplication.   
   if (a == NULL && carry_val == 0)
   return;
 
@@ -187,7 +224,7 @@ void multiplyhelper(const int b, snode * a, qnode * &c, int carry_val) {
   if (a == NULL) {
   c -> data = carry_val;
   return;
-}
+  }
   else {
     int multiply_math = b * a -> data + carry_val + c -> data;
     c -> data = multiply_math % 10;
@@ -196,56 +233,29 @@ void multiplyhelper(const int b, snode * a, qnode * &c, int carry_val) {
   }
 }
 
-//This function uses a while loop to make sure that we handle the '0'
-//displacement needed for each iteration of the multiplication.
+```
 
-qnode * multiplystarter (dnode * da, dnode * db) {
+```C++
+int reverseAndCount(qnode * &a) 
+{
+   //When printing out multiplication result, reverse the list and return the count of the number of integer characters present.
+   qnode * headnew = NULL;
+   qnode * temp = NULL;
+   int numcount = 0;
 
-  if (da == NULL || db == NULL)
-  return NULL;
+   while (a) {
+     temp = a;
+     a = a -> next;
+     temp -> next  = headnew;
+     headnew = temp;
+     numcount++;
+   }
 
-  qnode * const product_head = new qnode;
-  product_head-> data = 0;
-  product_head-> next = NULL;
-  snode *snode_b = db -> head;
-  snode *snode_a = da -> head;
-  int level = 0; //keeps track of of the displacement needed for multiplication
-
-  while (snode_b) {
-    qnode * product = product_head;
-    int multiplier = snode_b -> data;
-
-    for (int i = 0; i < level; i++) { //find the right spot to start adding
-      product = product -> next;
-    }
-    multiplyhelper(multiplier, snode_a, product, 0);
-    snode_b = snode_b -> prev;
-    level++;
-  }
-
-  return product_head;
+   a = headnew;
+   return numcount;
 }
 
-//called once - The facade for the multiply functionality, returns a datalist with the multiplication result
-
-dnode * multiply(dnode * a, dnode * b) {
-
- qnode * head = NULL;
- dnode * d_top = NULL;
- int num = 0;
- head = multiplystarter(a, b);
-
- if (head) {
-   num = reverseAndCount(head);
-   d_top = new dnode;
-   d_top -> decimalpos = num - (a -> decimalpos + b -> decimalpos);
-   d_top -> isFloat = (d_top -> decimalpos > 0);
-   d_top -> head_q = head;
-  }
-
-  return d_top;
-}
-
+```
 
 
 
