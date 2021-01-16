@@ -5,7 +5,7 @@
 ### Each number must be built using a linked list. For e.g. the number 489.59 would be represented by list of linked nodes like this: 4-> 8 -> 9 ->. ->5 -> 9
 
 ### Big O Analysis
-If an addition is called, the algortihm runs in O(N). If a multiplication is called, algorithm runs in O(N^2).
+For additions, the algortihm runs in O(N). For multiplications, algorithm runs in O(N^2).
 
 
 
@@ -19,7 +19,7 @@ If an addition is called, the algortihm runs in O(N). If a multiplication is cal
 using namespace std;
 
 ```
-### Our Structs 
+###  Structs 
 
 ```C++
 
@@ -42,6 +42,9 @@ struct dnode{ // Holds a reference for either a queue or stack of numbers, and d
 };
 ```
 
+### Function: Check if file exists
+
+```C++
 // Function to check if the file we're trying to read from exists.
 
 bool fileExists(char * name) {
@@ -55,8 +58,11 @@ bool fileExists(char * name) {
   return true;
 
 }
+```
 
-//Function to read the characters from the file.
+### Function: Read from the file and return a dnode struct
+
+```C++
 
 dnode * getNums (char * name) {
 
@@ -101,7 +107,13 @@ dnode * getNums (char * name) {
 
   return top;
 }
+```
 
+### Functions: 
+    ### 1. Return the position of the decimal point
+    ### 2. Return if the number is a floating point
+
+```C++
 //Return the position of the decimal point if number is a float.
 
 int getDecimalPos(dnode * head) {
@@ -114,8 +126,11 @@ int getDecimalPos(dnode * head) {
 bool read(dnode * head) { 
   return head -> isFloat;
 }
+```
 
-//Print the resulting linked list to a file. 
+### Function : Print a linkedlist
+
+```C++
 
 void printList(dnode * res) {
 
@@ -132,7 +147,7 @@ void printList(dnode * res) {
     result = result -> next;
   }
 }
-
+```
 //////////////////////////////////Algorithm for Multiplication//////////////////////////////
 
 //When printing out multiplication result, reverse the list and  
