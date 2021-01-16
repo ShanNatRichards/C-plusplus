@@ -23,18 +23,24 @@ using namespace std;
 
 ```C++
 
-struct qnode { // Node used to create a queue to represent a number. So the number 357 in the queue looks like  (3<- 5<- 7)
+struct qnode 
+{ 
+  // Node used to create a queue to represent a number. So the number 357 in the queue looks like  (3<- 5<- 7)
   int data;  // node's member used to store a single integer character
   qnode * next; //pointer to the next node in the queue.
 };
 
-struct snode {  // Node used to create a stack to represent a number. So the number 357 in the stack looks like  (7<- 5<- 3)
+struct snode 
+{  
+  // Node used to create a stack to represent a number. So the number 357 in the stack looks like  (7<- 5<- 3)
   int data; // node's member used to store a single integer character
   snode * prev; //pointer to the next node in the stack.
 };
 
 
-struct dnode{ // Holds a reference for either a queue or stack of numbers, and defines whether the number is floating point and position of decimal point.
+struct dnode
+{ 
+  // Holds a reference for either a queue or stack of numbers, and defines whether the number is floating point and position of decimal point.
   bool isFloat; //Is the number a floating point? 
   int decimalpos; //The position of decimal point. 
   snode * head; // Pointer to the head of the stack
@@ -76,227 +82,10 @@ return 0;
 
 ```
 
-
-
-### Function: Check if file exists
-
-```C++
-// Function to check if the file we're trying to read from exists.
-
-bool fileExists(char * name) {
-  ifstream file (name);
-
-  if(!file.is_open()) {
-    cout << "Oops. That file called " << name <<  " doesn't seem to exist. Try again."<<endl;
-    return false;
-  }
-  file.close();
-  return true;
-
-}
-```
-
-### Function: Read from the file and return a dnode struct
-
-```C++
-
-dnode * getNums (char * name) {
-
-  ifstream file(name);
-  char tempdata = '0';
-  int dec_counter = -1;
-  snode * sn = NULL;
-  dnode * top = NULL;
-
-  while (file) {
-    file >>tempdata;
-
-    if (file.eof())
-    break;
-
-    if (tempdata == '.') {
-      dec_counter++;
-      continue;
-    }
-
-    if (dec_counter > -1)
-    dec_counter++;
-
-    snode * temp = new snode;
-    temp -> data  = tempdata - '0';
-    temp -> prev = sn;
-    sn = temp;
-  }
-
-  if (sn) {
-    top = new dnode;
-
-    if (dec_counter > -1) {
-    top -> isFloat = true;
-    top -> decimalpos = dec_counter;
-  }else {
-    top -> isFloat = false;
-    top -> decimalpos = 0;
-  }
-    top -> head = sn;
-  }
-
-  return top;
-}
-```
-
-### Functions: 
-    ### 1. Return the position of the decimal point
-    ### 2. Return if the number is a floating point
-
-```C++
-//Return the position of the decimal point if number is a float.
-
-int getDecimalPos(dnode * head) {
-  return head -> decimalpos;
-}
-
-
-//Return true or false if data list contains a floating point number.
-
-bool read(dnode * head) { 
-  return head -> isFloat;
-}
-```
-
-### Function : Print Linkedlist
-
-```C++
-
-void printList(dnode * res) {
-
-  qnode * result = res -> head_q;
-  int dec_counter = 0;
-  int decimal_pos = getDecimalPos(res);
-
-  while(result) {
-    cout <<result -> data << endl;
-    dec_counter++;
-    if (dec_counter == decimal_pos)
-    cout << '.' << endl;
-
-    result = result -> next;
-  }
-}
-```
-
-## Functions for Multiplication:
-
-### Function: Multiplies the values passed in via the dnode structs
-    ### returns a dnode strcut with the multiplication result
-``` C+++
-dnode * multiply(dnode * a, dnode * b) 
-{
-   qnode * head = NULL;
-   dnode * d_top = NULL;
-   int num = 0;
-   head = multiplystarter(a, b);
-
-   if (head) {
-     num = reverseAndCount(head);
-     d_top = new dnode;
-     d_top -> decimalpos = num - (a -> decimalpos + b -> decimalpos);
-     d_top -> isFloat = (d_top -> decimalpos > 0);
-     d_top -> head_q = head;
-  }
-
-  return d_top;
-}
-
-```
-### Multiply Sub Functions:
-
-```C++
-
-qnode * multiplystarter (dnode * da, dnode * db) 
-{
-  //This function uses a while loop to make sure that we handle the '0' displacement needed for each iteration of the multiplication.
-  if (da == NULL || db == NULL)
-    return NULL;
-
-  qnode * const product_head = new qnode;
-  product_head-> data = 0;
-  product_head-> next = NULL;
-  snode *snode_b = db -> head;
-  snode *snode_a = da -> head;
-  int level = 0; //variable keeps track of of the displacement needed for multiplication
-
-  while (snode_b) {
-    qnode * product = product_head;
-    int multiplier = snode_b -> data;
-
-    for (int i = 0; i < level; i++) { //find the right spot to start adding
-      product = product -> next;
-    }
-    
-    multiplyhelper(multiplier, snode_a, product, 0);
-    snode_b = snode_b -> prev;
-    level++;
-  }
-
-  return product_head;
-}
-
-```
-
-```C++
-void multiplyhelper(const int b, snode * a, qnode * &c, int carry_val) 
-{
-  //Recursive function that manages addition in the multiplication.   
-  if (a == NULL && carry_val == 0)
-  return;
-
-  if (c == NULL) {
-    c = new qnode;
-    c -> data = 0;
-    c ->next = NULL;
-  }
-
-  if (a == NULL) {
-  c -> data = carry_val;
-  return;
-  }
-  else {
-    int multiply_math = b * a -> data + carry_val + c -> data;
-    c -> data = multiply_math % 10;
-    carry_val = multiply_math / 10;
-    multiplyhelper(b, a->prev, c->next, carry_val);
-  }
-}
-
-```
-
-```C++
-int reverseAndCount(qnode * &a) 
-{
-   //When printing out multiplication result, reverse the list and return the count of the number of integer characters present.
-   qnode * headnew = NULL;
-   qnode * temp = NULL;
-   int numcount = 0;
-
-   while (a) {
-     temp = a;
-     a = a -> next;
-     temp -> next  = headnew;
-     headnew = temp;
-     numcount++;
-   }
-
-   a = headnew;
-   return numcount;
-}
-
-```
-
 ## Functions for Addition:
 
 ### Add Function
-   ### Adds 2 dnode structs passed in as arguments.
+   ###Adds 2 dnode structs passed in as arguments.
 
 ```C++
 //Facade for the addition functionality, returns datalist with the result of the addition.
@@ -439,6 +228,230 @@ void copyToSum(snode*&t, qnode *&sum, int repeat)
   copyToSum(t, sum, --repeat);
 }
 
+```
+
+
+
+## Functions for Multiplication:
+
+### Function: Multiply
+    ### returns a dnode strcut with the multiplication result
+    
+``` C+++
+dnode * multiply(dnode * a, dnode * b) 
+{
+   qnode * head = NULL;
+   dnode * d_top = NULL;
+   int num = 0;
+   head = multiplystarter(a, b);
+
+   if (head) {
+     num = reverseAndCount(head);
+     d_top = new dnode;
+     d_top -> decimalpos = num - (a -> decimalpos + b -> decimalpos);
+     d_top -> isFloat = (d_top -> decimalpos > 0);
+     d_top -> head_q = head;
+  }
+
+  return d_top;
+}
+
+```
+### Multiply Sub Functions:
+
+```C++
+
+qnode * multiplystarter (dnode * da, dnode * db) 
+{
+  //This function uses a while loop to make sure that we handle the '0' displacement needed for each iteration of the multiplication.
+  if (da == NULL || db == NULL)
+    return NULL;
+
+  qnode * const product_head = new qnode;
+  product_head-> data = 0;
+  product_head-> next = NULL;
+  snode *snode_b = db -> head;
+  snode *snode_a = da -> head;
+  int level = 0; //variable keeps track of of the displacement needed for multiplication
+
+  while (snode_b) {
+    qnode * product = product_head;
+    int multiplier = snode_b -> data;
+
+    for (int i = 0; i < level; i++) { //find the right spot to start adding
+      product = product -> next;
+    }
+    
+    multiplyhelper(multiplier, snode_a, product, 0);
+    snode_b = snode_b -> prev;
+    level++;
+  }
+
+  return product_head;
+}
+
+```
+
+```C++
+void multiplyhelper(const int b, snode * a, qnode * &c, int carry_val) 
+{
+  //Recursive function that manages addition in the multiplication.   
+  if (a == NULL && carry_val == 0)
+  return;
+
+  if (c == NULL) {
+    c = new qnode;
+    c -> data = 0;
+    c ->next = NULL;
+  }
+
+  if (a == NULL) {
+    c -> data = carry_val;
+    return;
+  }
+  else {
+    int multiply_math = b * a -> data + carry_val + c -> data;
+    c -> data = multiply_math % 10;
+    carry_val = multiply_math / 10;
+    multiplyhelper(b, a->prev, c->next, carry_val);
+  }
+}
+
+```
+
+```C++
+int reverseAndCount(qnode * &a) 
+{
+   //When printing out multiplication result, reverse the list and return the count of the number of integer characters present.
+   qnode * headnew = NULL;
+   qnode * temp = NULL;
+   int numcount = 0;
+
+   while (a) {
+     temp = a;
+     a = a -> next;
+     temp -> next  = headnew;
+     headnew = temp;
+     numcount++;
+   }
+
+   a = headnew;
+   return numcount;
+}
+
+```
+
+## General Functions:
+
+### Function: Check if file exists
+
+```C++
+// Function to check if the file we're trying to read from exists.
+
+bool fileExists(char * name) 
+{
+  ifstream file (name);
+
+  if(!file.is_open()) {
+    cout << "Oops. That file called " << name <<  " doesn't seem to exist. Try again."<<endl;
+    return false;
+  }
+  file.close();
+  return true;
+
+}
+```
+
+### Function: Read from the file and return a dnode struct
+
+```C++
+
+dnode * getNums (char * name) 
+{
+
+  ifstream file(name);
+  char tempdata = '0';
+  int dec_counter = -1;
+  snode * sn = NULL;
+  dnode * top = NULL;
+
+  while (file) {
+    file >>tempdata;
+
+    if (file.eof())
+      break;
+
+    if (tempdata == '.') {
+      dec_counter++;
+      continue;
+    }
+
+    if (dec_counter > -1)
+      dec_counter++;
+
+    snode * temp = new snode;
+    temp -> data  = tempdata - '0';
+    temp -> prev = sn;
+    sn = temp;
+  }
+
+  if (sn) {
+    top = new dnode;
+
+    if (dec_counter > -1) {
+    top -> isFloat = true;
+    top -> decimalpos = dec_counter;
+  }else {
+    top -> isFloat = false;
+    top -> decimalpos = 0;
+  }
+    top -> head = sn;
+  }
+
+  return top;
+}
+```
+
+### Functions: Return the position of the decimal point
+   
+```C++
+//Return the position of the decimal point if number is a float.
+
+int getDecimalPos(dnode * head) {
+  return head -> decimalpos;
+}
+
+```
+### Functions:  Return if the number is a floating point
+
+```C++
+//Return true or false if data list contains a floating point number.
+
+bool read(dnode * head) { 
+  return head -> isFloat;
+}
+```
+
+### Function : Print Linkedlist
+
+```C++
+
+void printList(dnode * res) 
+{
+
+  qnode * result = res -> head_q;
+  int dec_counter = 0;
+  int decimal_pos = getDecimalPos(res);
+
+   while(result) {
+     cout <<result -> data << endl;
+     dec_counter++;
+     if (dec_counter == decimal_pos)
+        cout << '.' << endl;
+
+    result = result -> next;
+  }
+}
 ```
 
 
