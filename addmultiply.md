@@ -42,6 +42,42 @@ struct dnode{ // Holds a reference for either a queue or stack of numbers, and d
 };
 ```
 
+### Main Function
+
+```C++
+int main (int argc, char * argv[]) 
+{
+
+  if (fileExists(argv[2]) && fileExists(argv[3]))
+  {
+     char * file1 = argv[2];
+     char * file2 = argv[3];
+     dnode *const l1 = getNums(file1);
+     dnode *const l2 = getNums(file2);
+     char * command = argv[1];
+     dnode * res = NULL;
+
+     if (strcmp(command, "add") == 0)
+     {
+        res = add (l1, l2);
+        printList(res);
+    
+    } else if (strcmp(command, "multiply") == 0)
+    {
+       res = multiply (l1, l2);
+       printList(res);
+    } else 
+    {
+       cout << "Command is not right - type 'add' or 'multiply'." <<endl;
+    }
+  }
+return 0;
+}
+
+```
+
+
+
 ### Function: Check if file exists
 
 ```C++
@@ -257,60 +293,77 @@ int reverseAndCount(qnode * &a)
 
 ```
 
+## Functions for Addition:
 
+### Add Function
+   ### Adds 2 dnode structs passed in as arguments.
 
-//////////////////////////////////Algorithm for Addition//////////////////////////////
+```C++
+//Facade for the addition functionality, returns datalist with the result of the addition.
 
-//Let's say we're adding 2.8976 and 2.1, then this function is responsible
-//for inserting '976' (the unmatched place positions) into the end of the list for the sum. 
+dnode * add(dnode * a, dnode * b ){
+  if (a == NULL || b == NULL)
+  return NULL;
 
-void copyToSum(snode*&t, qnode *&sum, int repeat) {
+  qnode * result = addstarter(a, b);
+  int num = reverseAndCount(result);
+  int decimal_places = (a ->decimalpos > b->decimalpos)? a -> decimalpos : b -> decimalpos;
 
-  if (repeat == 0) return;
+  dnode * c = new dnode;
+  c -> isFloat = (decimal_places > 0);
 
-  sum -> data = t -> data;
+  if (c -> isFloat)
+  c -> decimalpos = num - decimal_places;
+  else
+  c -> decimalpos = 0;
 
-  sum -> next = new qnode;
-  sum = sum -> next;
+  c ->head_q = result;
+  return c;
+}
+
+```
+
+### Addition SubFunctions:
+
+```C++
+
+qnode * addstarter(dnode * a, dnode * b) {
+  //Manages the adding of numbers sitting behind the decimal point.
+  qnode * sum = new qnode;
   sum -> next = NULL;
-  t = t-> prev;
+  sum -> data = 0;
 
-  copyToSum(t, sum, --repeat);
-}
+  qnode * const summation_head = sum;
+  snode * sa = a -> head;
+  snode * sb = b -> head;
 
-//Let's say we're adding 12325 and 68, then this function is responsible for 
-//inserting 123 (left-over values) into the front of the list for the sum.
 
-void handleLeftOvers(snode * &t , qnode * &sum, int carry_val) {
+  if (a ->isFloat || b->isFloat) {
+    int decimal_place_for_a = a -> decimalpos;
+    int decimal_place_for_b = b -> decimalpos;
 
-  if (t == NULL && carry_val == 0)
-  return;
-
-  if (sum == NULL) {
-    sum = new qnode;
-    sum -> next = NULL;
+    if (decimal_place_for_a > decimal_place_for_b)
+        copyToSum(sa, sum, (decimal_place_for_a - decimal_place_for_b));
+    else if (decimal_place_for_b > decimal_place_for_a)
+        copyToSum(sb, sum, (decimal_place_for_b - decimal_place_for_a));
   }
 
-  if (t == NULL && carry_val > 0) {
-    sum -> data = carry_val;
-    return;
-  }
-
-  int sum_value = t->data + carry_val;
-  sum -> data = sum_value % 10;
-  carry_val = sum_value / 10;
-
-  handleLeftOvers(t -> prev, sum -> next, carry_val);
+  addhandler(sa,sb,sum, 0);
+  return summation_head;
 
 }
 
-//If we're adding 3876 and 123, this function is responsible for adding
-// '876' and '123', (numbers with matching place positions in with datalist)
+```
 
-void addhandler(snode * a, snode * b, qnode * &sum, int carry_val) {
+```C++
+// Recursive function is responsible for adding the numbers with matching place positions in the dnode
+// For example, if the numbers we want to add are 3876 and 123, the function adds 876 to 123.
+
+void addhandler(snode * a, snode * b, qnode * &sum, int carry_val) 
+{
 
   if ( a == NULL && b == NULL && carry_val == 0)
-  return;
+    return;
 
   if (sum == NULL){
     sum = new qnode;
@@ -334,80 +387,58 @@ void addhandler(snode * a, snode * b, qnode * &sum, int carry_val) {
   addhandler(a->prev, b -> prev, sum->next, carry_val);
 }
 
-
-
-//Manages the adding of numbers sitting behind the decimal point.
-
-qnode * addstarter(dnode * a, dnode * b) {
-  qnode * sum = new qnode;
-  sum -> next = NULL;
-  sum -> data = 0;
-
-  qnode * const summation_head = sum;
-  snode * sa = a -> head;
-  snode * sb = b -> head;
-
-
-  if (a ->isFloat || b->isFloat) {
-    int decimal_place_for_a = a -> decimalpos;
-    int decimal_place_for_b = b -> decimalpos;
-
-    if (decimal_place_for_a > decimal_place_for_b)
-    copyToSum(sa, sum, (decimal_place_for_a - decimal_place_for_b));
-    else if (decimal_place_for_b > decimal_place_for_a)
-    copyToSum(sb, sum, (decimal_place_for_b - decimal_place_for_a));
-  }
-
-  addhandler(sa,sb,sum, 0);
-  return summation_head;
-
-}
-
-//Facade for the addition functionality, returns datalist with the result of the addition.
-
-dnode * add(dnode * a, dnode * b ){
-  if (a == NULL || b == NULL)
-  return NULL;
-
-  qnode * result = addstarter(a, b);
-  int num = reverseAndCount(result);
-  int decimal_places = (a ->decimalpos > b->decimalpos)? a -> decimalpos : b -> decimalpos;
-
-  dnode * c = new dnode;
-  c -> isFloat = (decimal_places > 0);
-
-  if (c -> isFloat)
-  c -> decimalpos = num - decimal_places;
-  else
-  c -> decimalpos = 0;
-
-  c ->head_q = result;
-  return c;
-}
-
-///////////////////////////////Main/////////////////////////////
-int main (int argc, char * argv[]) {
-
-  if (fileExists(argv[2]) && fileExists(argv[3])){
-  char * file1 = argv[2];
-  char * file2 = argv[3];
-  dnode *const l1 = getNums(file1);
-  dnode *const l2 = getNums(file2);
-  char * command = argv[1];
-  dnode * res = NULL;
-
-  if (strcmp(command, "add") == 0){
-    res = add (l1, l2);
-    printList(res);
-  }else if (strcmp(command, "multiply") == 0){
-     res = multiply (l1, l2);
-     printList(res);
-  }else {
-    cout << "Command is not right - type 'add' or 'multiply'." <<endl;
-  }
-}
-return 0;
-
-
-}
 ```
+
+```C++
+
+// Recurive function responsible for placing the left-over values to the front of the list for the sum.
+// Let's say we're adding 12325 and 68, then this function inserts 123 after addhandler function adds '25' and '68'.
+
+void handleLeftOvers(snode * &t , qnode * &sum, int carry_val) 
+{
+
+  if (t == NULL && carry_val == 0)
+    return;
+
+  if (sum == NULL) {
+    sum = new qnode;
+    sum -> next = NULL;
+  }
+
+  if (t == NULL && carry_val > 0) {
+    sum -> data = carry_val;
+    return;
+  }
+
+  int sum_value = t->data + carry_val;
+  sum -> data = sum_value % 10;
+  carry_val = sum_value / 10;
+
+  handleLeftOvers(t -> prev, sum -> next, carry_val);
+
+}
+
+```
+
+```C++
+//Let's say we're adding 2.8976 and 2.1, then this function is responsible
+//for inserting '976' (the unmatched place positions) into the end of the list for the sum. 
+
+void copyToSum(snode*&t, qnode *&sum, int repeat) 
+{
+
+  if (repeat == 0) return;
+
+  sum -> data = t -> data;
+
+  sum -> next = new qnode;
+  sum = sum -> next;
+  sum -> next = NULL;
+  t = t-> prev;
+
+  copyToSum(t, sum, --repeat);
+}
+
+```
+
+
